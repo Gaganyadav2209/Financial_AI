@@ -1,0 +1,18 @@
+[project]
+name = "ai-agents"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "finnhub-python>=2.4.23",
+    "langchain>=0.3.25",
+    "langchain-community>=0.3.24",
+    "langchain-google-genai>=2.1.5",
+    "langchain-groq>=0.3.2",
+    "langchain-tavily>=0.2.0",
+    "langgraph>=0.4.7",
+    "langsmith>=0.3.43",
+    "polygon-api-client>=1.14.5",
+    "streamlit>=1.45.1",
+]
