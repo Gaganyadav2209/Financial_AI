@@ -3,7 +3,7 @@ from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, START, END, MessagesState
 from langgraph.graph.message import add_messages
 from langchain_groq import ChatGroq
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, ToolMessage
 from langchain_community.utilities.alpha_vantage import AlphaVantageAPIWrapper
 from langchain_core.tools import tool
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -289,31 +289,30 @@ for entry in st.session_state.stored_history:
 
 
 
-user_input = st.chat_input("Type your message here...")
-if user_input:
-    st.session_state.agent_state["messages"].append(HumanMessage(content=user_input))    
+
+user_input = st.chat_input("Type your message here…")
+if user_input:   
+    st.session_state.agent_state["messages"].append(HumanMessage(content=user_input))
     st.session_state.stored_history.append({"role": "user", "content": user_input})
     st.chat_message("user").write(user_input)
-    response_placeholder = st.chat_message("assistant")
-    
-    full_message = []
-    for token, metadata in agent.stream(
-        st.session_state.agent_state,
-        stream_mode="messages"
-    ):
-        
-        text = token.content or ""
-        full_message.append(text)
-            
-        response_placeholder.write("".join(full_message))
 
-    
-    full_text = "".join(full_message)
-    new_ai_message = AIMessage(content=full_text)
+   
+    with st.chat_message("assistant"):
+        placeholder = st.empty()
+        full_parts = []
+        for token, metadata in agent.stream(
+            st.session_state.agent_state,
+            stream_mode="messages"
+        ):
+            if isinstance(token, ToolMessage):
+                continue
+            chunk = token.content or ""
+            full_parts.append(chunk)
+            current_text = "".join(full_parts)
+          
+            placeholder.write(current_text)
 
-    st.session_state.agent_state["messages"].append(new_ai_message)
+    full_text = "".join(full_parts)
+    ai_msg = AIMessage(content=full_text)
+    st.session_state.agent_state["messages"].append(ai_msg)
     st.session_state.stored_history.append({"role": "assistant", "content": full_text})
-    st.write("")
-
-
-
